@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Aplikasi Pencarian Jadwal Pesawat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    form {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #5ca904;
+      border-radius: 5px;
+      background-color: #f7f7f7;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    select,
+    input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #5ca904;
+      border-radius: 4px;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+
+    button {
+      background-color: #e97909;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #ff7f00;
+    }
+
+    #resultsContainer {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #5ca904;
+      border-radius: 5px;
+      background-color: #FFFFF0 ;
+    }
+
+    #resultsList {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #resultsList li {
+      display: flex;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    #resultsList li div:first-child {
+      margin-right: 10px;
+    }
+
+    #resultsList img {
+      width: 80px;
+      height: 80px;
+    }
+
+    img.logoMaskapai {
+      width: 50px;
+      height: 50px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hiling.id</h1>
+
+  <form id="searchForm">
+    <label for="origin">Asal Bandara:</label>
+    <select id="origin" required>
+      <option value="">Pilih Bandara</option>
+    </select>
+
+    <label for="destination">Tujuan Bandara:</label>
+    <select id="destination" required>
+      <option value="">Pilih Bandara</option>
+    </select>
+
+    <label for="departureDate">Tanggal Keberangkatan:</label>
+    <input type="date" id="departureDate" required>
+
+    <button type="submit">Cari Jadwal</button>
+  </form>
+
+  <div id="resultsContainer" style="display: none;">
+    <h2>Hasil Pencarian Jadwal</h2>
+    <ul id="resultsList"></ul>
+  </div>
+
+  <script>
+    // Data Jadwal
+    const jadwalPesawat = [
+      { id: 1, asal: 'CGK', tujuan: 'DPS', maskapaiId: 1, terbang: true },
+      { id: 2, asal: 'CGK', tujuan: 'SUB', maskapaiId: 2, terbang: false },
+      { id: 3, asal: 'DPS', tujuan: 'CGK', maskapaiId: 3, terbang: true },
+    ];
+
+    // Data Maskapai
+    const maskapai = [
+  { id: 1, nama: 'Garuda Indonesia', logo: 'Garuda.png' },
+  { id: 2, nama: 'AirAsia', logo: 'AirAsia.png' },
+  { id: 3, nama: 'Lion Air', logo: 'Lion.png' },
+];
+
+
+    // Data Bandara
+    const bandara = [
+      { kode: 'CGK', nama: 'Soekarno-Hatta International Airport' },
+      { kode: 'DPS', nama: 'Ngurah Rai International Airport' },
+      { kode: 'SUB', nama: 'Juanda International Airport' },
+    ];
+
+    // Fungsi untuk mengisi pilihan bandara pada formulir
+    function populateBandaraOptions() {
+      const originSelect = document.getElementById('origin');
+      const destinationSelect = document.getElementById('destination');
+
+      bandara.forEach(bandara => {
+        const option = document.createElement('option');
+        option.value = bandara.kode;
+        option.textContent = bandara.nama;
+
+        originSelect.appendChild(option.cloneNode(true));
+        destinationSelect.appendChild(option);
+      });
+    }
+
+    // Fungsi pencarian jadwal pesawat
+    function cariJadwalPesawat(asal, tujuan, tanggal) {
+      const hasilPencarian = jadwalPesawat.filter(jadwal => {
+        return jadwal.asal === asal && jadwal.tujuan === tujuan && jadwal.terbang === true;
+      });
+
+      const jadwalLengkap = hasilPencarian.map(jadwal => {
+        const maskapaiInfo = maskapai.find(m => m.id === jadwal.maskapaiId);
+        const bandaraAsal = bandara.find(b => b.kode === jadwal.asal);
+        const bandaraTujuan = bandara.find(b => b.kode === jadwal.tujuan);
+
+        return {
+          id: jadwal.id,
+          maskapai: maskapaiInfo.nama,
+          logoMaskapai: maskapaiInfo.logo,
+          asal: bandaraAsal.nama,
+          tujuan: bandaraTujuan.nama,
+          tanggal: tanggal,
+        };
+      });
+
+      return jadwalLengkap;
+    }
+
+    // Fungsi untuk menampilkan hasil pencarian
+    function tampilkanHasilPencarian(jadwal) {
+      const resultsList = document.getElementById('resultsList');
+      resultsList.innerHTML = '';
+
+      jadwal.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div>
+            <img src="images/${item.logoMaskapai}">
+          </div>
+          <div>
+            <h3>${item.maskapai}</h3>
+            <p>Asal: ${item.asal}</p>
+            <p>Tujuan: ${item.tujuan}</p>
+            <p>Tanggal Keberangkatan: ${item.tanggal}</p>
+          </div>
+        `;
+        resultsList.appendChild(li);
+      });
+
+      const resultsContainer = document.getElementById('resultsContainer');
+      resultsContainer.style.display = 'block';
+    }
+
+    // Fungsi untuk menangani submit form
+    function handleFormSubmit(event) {
+      event.preventDefault();
+
+      const origin = document.getElementById('origin').value;
+      const destination = document.getElementById('destination').value;
+      const departureDate = document.getElementById('departureDate').value;
+
+      const hasilPencarian = cariJadwalPesawat(origin, destination, departureDate);
+      tampilkanHasilPencarian(hasilPencarian);
+    }
+
+    // Panggil fungsi untuk mengisi pilihan bandara pada formulir
+    populateBandaraOptions();
+
+    // Event listener untuk submit form
+    const searchForm = document.getElementById('searchForm');
+    searchForm.addEventListener('submit', handleFormSubmit);
+  </script>
+</body>
+</html>
